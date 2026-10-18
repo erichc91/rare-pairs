@@ -250,7 +250,7 @@ summary { cursor: pointer; color: var(--ink); width: fit-content; }
 
   document.getElementById("foot").innerHTML = `
     <div><b>How the pairs were picked.</b> Every pair of corpus equations that the same proto-law covers, both members proved in Lean, from different fields, both papers with reference lists in the OpenAlex cache. Score = field distance (1 if different top-level discipline, 0.5 if same discipline) x unseen (no direct citation and no shared reference) x rarity (fewer members of this law in that field = higher) x animates-well x governing-equation weight. A person then kept only pairs where both equations describe a concrete real thing, and the top 30 were searched on Wikipedia and the web.</div>
-    <div><b>What "unseen" does not mean.</b> Nobody in the world has noticed. It means: no citation link in our cache and no page we could find that names the two together. The equation itself is usually famous; the pairing is what is rare.</div>`;
+    <div><b>About "unseen".</b> I couldn't find a citation link or any page naming the two together. Somebody may still have noticed one of these. The equation itself is usually famous; the pairing is what is rare.</div>`;
 
   function resize(v) {
     const w = v.cv.parentElement.clientWidth, phone = w < 640;
