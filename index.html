@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Pairs of things from fields that never talk to each other, proven in Lean to follow the same equation.">
+<title>Rare Pairs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&display=swap">
+<style>
+:root {
+  --bg: #eef1f6; --stage: #f7f8fb; --card: #fbfcfe; --ink: #1b2333; --mute: #6f788b;
+  --grid: rgba(40, 52, 80, 0.10);
+  --a1: #7f72cf; --a2: #d6455a; --b1: #c4851a; --b2: #11889f;
+  --gone: rgba(110, 120, 140, 0.30); --glow: 0;
+  --font-num: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --font-cap: "Newsreader", "Iowan Old Style", Georgia, serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #080c18; --stage: #0c1222; --card: #0a1020; --ink: #e5e9f3; --mute: #7a849b; --grid: rgba(170, 185, 225, 0.09);
+    --a1: #c7bdff; --a2: #ff7c8b; --b1: #ffbd5c; --b2: #62dcef; --gone: rgba(120, 132, 165, 0.26);
+    --glow: 1; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #080c18; --stage: #0c1222; --card: #0a1020; --ink: #e5e9f3; --mute: #7a849b; --grid: rgba(170, 185, 225, 0.09);
+  --a1: #c7bdff; --a2: #ff7c8b; --b1: #ffbd5c; --b2: #62dcef; --gone: rgba(120, 132, 165, 0.26);
+  --glow: 1; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--bg); color: var(--ink); margin: 0; }
+body {
+  font-family: var(--font-num); font-size: 14px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 28px; }
+.hero { text-align: center; display: grid; gap: 8px; justify-items: center; }
+.hero h1 { font-family: var(--font-cap); font-weight: 400; font-size: clamp(2rem, 5vw, 3.1rem); margin: 0; letter-spacing: 0.005em; }
+.hero p { margin: 0; max-width: 62ch; color: var(--mute); }
+.hero .cap { font-family: var(--font-cap); font-style: italic; font-size: 1.15rem; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 22px; justify-content: center; color: var(--mute); font-size: 12px; }
+.legend b { color: var(--ink); font-weight: 500; }
+.card {
+  background: var(--card); border-radius: 18px; overflow: hidden;
+  box-shadow: 0 1px 0 var(--grid), 0 20px 60px -34px rgba(0, 0, 0, 0.38);
+  display: grid;
+}
+.head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; padding: 14px 18px 10px; }
+.num { font-family: var(--font-cap); font-size: 1.6rem; color: var(--mute); width: 1.6em; }
+.law { display: grid; gap: 1px; min-width: 0; flex: 1 1 260px; }
+.law b { font-weight: 500; font-size: 1rem; }
+.law span { color: var(--mute); font-size: 12px; }
+.chip { font-size: 11px; letter-spacing: 0.08em; padding: 3px 9px; border-radius: 99px; border: 1px solid var(--grid); }
+.chip.UNSEEN { color: var(--b2); border-color: color-mix(in srgb, var(--b2) 50%, transparent); }
+.chip.RARE { color: var(--b1); border-color: color-mix(in srgb, var(--b1) 50%, transparent); }
+.uniq { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--mute); }
+.uniq .bar { width: 96px; height: 6px; border-radius: 3px; background: var(--grid); overflow: hidden; }
+.uniq .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--a2), var(--b2)); }
+.stage { position: relative; background: var(--stage); }
+.stage canvas { display: block; width: 100%; }
+.names { display: grid; grid-template-columns: 1fr 1.25fr 1fr; gap: 14px; padding: 12px 18px 4px; align-items: start; }
+.nm b { display: block; font-family: var(--font-cap); font-weight: 400; font-size: 1.12rem; line-height: 1.25; }
+.nm span { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
+.nm.a span { color: var(--a2); } .nm.b span { color: var(--b2); }
+.nm.b { text-align: right; }
+.mid { text-align: center; color: var(--mute); font-family: var(--font-cap); font-style: italic; font-size: 1.02rem; }
+.sure { margin: 6px 18px 0; font-size: 12px; color: var(--mute); }
+.sure b { color: var(--ink); font-weight: 500; }
+details { margin: 6px 18px 16px; font-size: 12px; color: var(--mute); }
+summary { cursor: pointer; color: var(--ink); width: fit-content; }
+.src { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
+.src > div { border-left: 2px solid var(--grid); padding-left: 10px; min-width: 0; }
+.src a { color: var(--ink); }
+.src .tex { overflow-x: auto; padding: 4px 0; color: var(--ink); }
+.src code { font-family: var(--font-num); font-size: 11px; word-break: break-all; }
+.ev { margin-top: 8px; }
+.ev a { color: var(--ink); word-break: break-all; }
+.foot { color: var(--mute); font-size: 12px; max-width: 80ch; margin: 0 auto; display: grid; gap: 6px; }
+.foot b { color: var(--ink); font-weight: 500; }
+@media (max-width: 680px) {
+  .names { grid-template-columns: 1fr 1fr; }
+  .mid { grid-column: 1 / -1; order: 3; }
+  .src { grid-template-columns: 1fr; }
+  .head { padding: 12px 14px 8px; }
+}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header class="hero">
+    <p class="cap">same law, two worlds</p>
+    <h1>Rare pairs</h1>
+    <p>Each card shows two things from fields that almost never talk to each other. A computer proof checks that both obey the very same equation. In each picture the two worlds run on the <b>same random draws</b>, so they cannot disagree, and they trace one shared curve.</p>
+    <div class="legend" id="legend"></div>
+  </header>
+  <main id="cards" style="display:grid;gap:26px"></main>
+  <section class="foot" id="foot"></section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script>
+(() => {
+  "use strict";
+  const CARDS = [{"fam": "osc", "law": "Oscillation", "eq": "y'' = -w^2 y", "lawPlain": "a pull back toward the middle makes it swing forever", "nameA": "a wobbling tilt in a gas disk squeezed by a companion star", "nameB": "a heat wave inside tissue during laser or radio-frequency ablation", "fieldA": "astronomy", "fieldB": "medicine", "shared": "both obey the oscillation law: acceleration pulls back toward the middle", "verdict": "UNSEEN", "uniq": 0.9324, "titleA": "Resonant Excitation of Tilt Mode in Tidally Deformed Disks", "titleB": "The hyperbolic heat transfer equation and the ablation problem: Theory and experiment", "urlA": "https://arxiv.org/abs/1310.1140", "urlB": "https://arxiv.org/abs/1705.10074", "texA": "\\frac{d^2f}{dr^2}+Qf=0", "texB": "a\\tau\\ddot T_3+{1\\over a}\\dot T_3=-k^2T_3\\eqno(2.16)", "leanA": "Oscillation_001.lean :: Oscillation_0094", "leanB": "Oscillation_001.lean :: Oscillation_0036", "nQueries": 4, "evidence": [{"url": "https://arxiv.org/pdf/1505.07827", "note": "Warp propagation review: viscous (diffusive) vs inviscid (wave) warp regimes; damped-wave-to-diffusion idea, but no heat/ablation link"}, {"url": "https://arxiv.org/pdf/0710.2683", "note": "Tilt equations covering diffusive and bending-wave regimes; no tissue/heat analogy"}], "checkNote": "Warp physics has a diffusion-vs-wave split resembling hyperbolic heat conduction, but nothing names disk tilt and tissue thermal waves together.", "seed": 1001, "bar": 1.0}, {"fam": "fill", "law": "Relaxation", "eq": "y' = k (a - y)", "lawPlain": "filling up to a set level: fast at first, slower as it gets close", "nameA": "graviton numbers in the expanding early universe", "nameB": "two vowel sounds merging in a spoken language", "fieldA": "astronomy", "fieldB": "linguistics", "shared": "both settle to a balance point: a steady inflow fights a leak proportional to how much there is", "verdict": "UNSEEN", "uniq": 0.9276, "titleA": "Cosmological gravitons and the expansion dynamics during the matter age", "titleB": "Exemplar Dynamics and Sound Merger in Language", "urlA": "https://arxiv.org/abs/astro-ph/9902338", "urlB": "https://arxiv.org/abs/1412.1841", "texA": "\\dot{n_g}+3Hn_g=\\Psi_g", "texB": "\\frac{dM}{dt} = - \\lambda M + \\mu", "leanA": "Relaxation_001.lean :: Relaxation_0006", "leanB": "Relaxation_012.lean :: Relaxation_2311", "nQueries": 4, "evidence": [{"url": "https://muse.jhu.edu/article/595227", "note": "Sound change as random split/merge stochastic process citing statistical-physics fragmentation models; no relaxation/graviton link"}], "checkNote": "No source connects cosmological graviton relaxation and vowel-merger dynamics, even at the field level.", "seed": 1003, "bar": 0.9949}, {"fam": "damped", "law": "Damped oscillation", "eq": "y'' + c y' + w^2 y = 0", "lawPlain": "a spring with friction: swings that fade", "nameA": "Alfven waves dying out in the Sun's hot atmosphere", "nameB": "boom-and-bust swings in a microbe population", "fieldA": "astronomy", "fieldB": "ecology", "shared": "both are a damped spring: a pull back to the middle plus friction", "verdict": "UNSEEN", "uniq": 0.9127, "titleA": "Investigating the damping rate of phase-mixed Alfven waves", "titleB": "Noise-driven oscillations in microbial population dynamics", "urlA": "https://arxiv.org/abs/1910.12510", "urlB": "https://arxiv.org/abs/1112.4836", "texA": "\\ddot{x}+\\gamma\\dot{x}+\\omega_0^2x=0", "texB": "\\frac{\\mathrm{d}^2 x}{\\mathrm{d} t^2} + \\frac{\\zeta}{m} \\frac{\\mathrm{d} x}{\\mathrm{d} t} + \\omega_0^2 x = 0", "leanA": "Oscillation_001.lean :: Oscillation_0007 (proved under owner oscillation)", "leanB": "Oscillation_001.lean :: Oscillation_0015 (proved under owner oscillation)", "nQueries": 4, "evidence": [{"url": "https://arxiv.org/pdf/1112.4836", "note": "Microbial damped oscillations sustained by demographic noise; no plasma link"}, {"url": "https://arxiv.org/pdf/1210.0485", "note": "Alfven phase mixing in spicules; no population link"}], "checkNote": "Both literatures use damped-oscillation language, but no source pairs coronal Alfven damping with microbial quasi-cycles.", "seed": 1007, "bar": 0.9789}, {"fam": "damped", "law": "Damped oscillation", "eq": "y'' + c y' + w^2 y = 0", "lawPlain": "a spring with friction: swings that fade", "nameA": "the bundle of hair-like sensors on a single cell in your inner ear", "nameB": "a single molecule vibrating next to a gold nanoparticle", "fieldA": "biology", "fieldB": "chemistry", "shared": "both are a damped spring pushed toward a resting point", "verdict": "UNSEEN", "uniq": 0.9127, "titleA": "Energy output from a single outer hair cell", "titleB": "Coupling, lifetimes and \"strong coupling\" maps for single molecules at plasmonic interfaces", "urlA": "https://arxiv.org/abs/1601.01643", "urlB": "https://arxiv.org/abs/2111.03730", "texA": "m\\frac{d^2P}{dt^2}+\\eta\\frac{dP}{dt}=(k+K)(P_\\infty-P)", "texB": "\\ddot{y}+\\gamma_{pl}\\dot{y}+\\omega_{p}^{2}y =\\frac{2\\omega_{0}}{\\hbar}MD", "leanA": "DampedOsc_001.lean :: DampedOsc_0008", "leanB": "DampedOsc_001.lean :: DampedOsc_0013", "nQueries": 4, "evidence": [{"url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC297624", "note": "Hair-bundle spectra resemble overdamped harmonic oscillators; no plasmonics link"}, {"url": "https://ar5iv.arxiv.org/html/physics/0703251", "note": "Plasmonic atoms/molecules as coupled oscillators; no hair-cell link"}], "checkNote": "Each side is modelled as a (coupled) damped oscillator, but nothing links hair bundles to molecule-plasmon coupling.", "seed": 1008, "bar": 0.9789}, {"fam": "diffuse", "law": "Diffusion", "eq": "u_t = D u_xx", "lawPlain": "stuff spreads from crowded to empty, like ink in water", "nameA": "magnetic field fading out of a quark star's surface", "nameB": "message molecules drifting from a sender to a receiver cell", "fieldA": "astronomy", "fieldB": "computer science", "shared": "both spread out by the diffusion law, like ink in water", "verdict": "UNSEEN", "uniq": 0.9009, "titleA": "On the Low Surface Magnetic Field Structure of Quark Stars", "titleB": "Performance Enhancement of Diffusion-based Molecular Communication with Photolysis", "urlA": "https://arxiv.org/abs/0810.4793", "urlB": "https://arxiv.org/abs/1906.10248", "texA": "\\frac{\\partial B}{\\partial t}=D\\nabla^2 B", "texB": "\\frac{\\partial S}{\\partial t} = D \\nabla^2 S", "leanA": "Spreading_006.lean :: Spreading_1097 (proved under owner spreading)", "leanB": "Spreading_006.lean :: Spreading_1125 (proved under owner spreading)", "nQueries": 4, "evidence": [{"url": "https://arxiv.org/pdf/1704.04206", "note": "Molecular communication with magnetic nanoparticles (field as drift) - superficial 'magnetic' overlap, not magnetic-field diffusion"}, {"url": "https://arxiv.org/pdf/1604.05680", "note": "MC paper compares Fick diffusion with the EM wave equation; no stellar link"}], "checkNote": "No source pairs quark-star field decay with diffusive molecular communication.", "seed": 1010, "bar": 0.9662}, {"fam": "diffuse", "law": "Diffusion", "eq": "u_t = D u_xx", "lawPlain": "stuff spreads from crowded to empty, like ink in water", "nameA": "tumour cells wandering out from a tumour", "nameB": "hillsides wearing down into smooth slopes over thousands of years", "fieldA": "biology", "fieldB": "geophysics", "shared": "both are diffusion: bumps flatten as stuff moves from high to low", "verdict": "UNSEEN", "uniq": 0.9009, "titleA": "Modeling tumor cell migration: from microscopic to macroscopic", "titleB": "Bayeslands: A Bayesian inference approach for parameter uncertainty quantification in Badlands", "urlA": "https://arxiv.org/abs/0812.4708", "urlB": "https://arxiv.org/abs/1805.03696", "texA": "\\frac{\\partial\\rho}{\\partial t}= D \\nabla ^2\\rho", "texB": "\\frac{\\partial z}{\\partial t}= \\kappa_{hl} \\nabla^2 z", "leanA": "Spreading_006.lean :: Spreading_1103 (proved under owner spreading)", "leanB": "Spreading_006.lean :: Spreading_1150 (proved under owner spreading)", "nQueries": 4, "evidence": [{"url": "https://docta.ucm.es/entities/publication/bc156ca1-0712-46dc-aef1-d7948ea02842/full", "note": "Bru et al.: tumour boundary as rough-surface growth (KPZ-type) - interface-growth bridge, not hillslope diffusion"}, {"url": "https://www.research.ed.ac.uk/en/publications/hillslopes-record-the-growth-and-decay-of-landscapes/", "note": "Hillslope nonlinear diffusion; no tumour link"}], "checkNote": "Shared diffusion operator only; the closest bridge is tumour interfaces as rough-surface growth, not hillslope creep.", "seed": 1011, "bar": 0.9662}, {"fam": "osc", "law": "Oscillation", "eq": "y'' = -w^2 y", "lawPlain": "a pull back toward the middle makes it swing forever", "nameA": "a tiny vibrating cantilever used as a biosensor", "nameB": "a soft object jiggling in a computer animation", "fieldA": "biology", "fieldB": "computer science", "shared": "both are the oscillation law: a pull back to the middle", "verdict": "UNSEEN", "uniq": 0.8928, "titleA": "Modeling a nanocantilever based biosensor using a stochastically perturbed harmonic oscillator", "titleB": "Simulating deformable objects for computer animation: a numerical perspective", "urlA": "https://arxiv.org/abs/1301.4533", "urlB": "https://arxiv.org/abs/2103.01891", "texA": "\\dfrac{d^2 x}{dt^2} + 2\\beta\\dfrac{dx}{dt} + \\omega_0^2 [1 + \\xi(t)] x = 0", "texB": "\\ddot q + \\omega^2q = 0", "leanA": "Oscillation_001.lean :: Oscillation_0012", "leanB": "Oscillation_001.lean :: Oscillation_0105", "nQueries": 4, "evidence": [{"url": "https://arxiv.org/abs/1301.4533", "note": "source paper A only; no animation link"}, {"url": "https://www.clrn.org/?p=3054", "note": "jiggle physics = mass-spring-damper, no sensor link"}], "checkNote": "Both sides are textbook mass-spring systems, but no source states the biosensor cantilever and animation jiggle together.", "seed": 1014, "bar": 0.9575}, {"fam": "allee", "law": "Allee / tipping cubic", "eq": "y' = y (y - a)(1 - y)", "lawPlain": "below a tipping point it dies out, above it it takes over", "nameA": "a tumour being treated with a cancer-killing virus", "nameB": "a crowd voting with its neighbours' majority", "fieldA": "biology", "fieldB": "physics", "shared": "both follow the Allee cubic: below a tipping point they collapse, above it they take over", "verdict": "UNSEEN", "uniq": 0.8687, "titleA": "Allee Effect and Oncolytic Virotherapy: Different Therapeutic Outcomes for Different Tumour Growth.", "titleB": "Mean-field analysis of the majority-vote model broken-ergodicity steady state", "urlA": "https://europepmc.org/article/PMC/PMC13538181", "urlB": "https://arxiv.org/abs/1203.0162", "texA": "\\frac{d U}{d t} = a U ( K - U ) ( U - \\theta )", "texB": "\\dot{\\rho} = \\rho \\left(-2\\rho^{2} + 3\\rho -1\\right)", "leanA": "AlleeCubic_001.lean :: AlleeCubic_0001", "leanB": "AlleeCubic_001.lean :: AlleeCubic_0020", "nQueries": 4, "evidence": [{"url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12373149/", "note": "Allee effects in virotherapy, no opinion-dynamics link"}, {"url": "https://arxiv.org/pdf/2102.12834", "note": "epidemic-opinion coupling, general epidemics not tumours"}], "checkNote": "Virotherapy-Allee and majority-vote literatures exist separately; no source connects oncolytic tumour dynamics to majority-vote models.", "seed": 1018, "bar": 0.9317}, {"fam": "allee", "law": "Allee / tipping cubic", "eq": "y' = y (y - a)(1 - y)", "lawPlain": "below a tipping point it dies out, above it it takes over", "nameA": "a virus multiplying inside a mosquito", "nameB": "an electrical pulse jumping between heart cells", "fieldA": "epidemiology", "fieldB": "mathematics", "shared": "both follow the Allee / Nagumo cubic with a tipping threshold", "verdict": "UNSEEN", "uniq": 0.8687, "titleA": "An Immuno-Epidemiological Vector-Host Model with Within-Vector Viral Kinetics", "titleB": "Why strengthening gap junctions may hinder action potential propagation", "urlA": "https://arxiv.org/abs/1912.08312", "urlB": "https://arxiv.org/abs/2205.12185", "texA": "\\dot{V}(s) = r_v V(1-V/ K_v)(V / U_v-1)", "texB": "\\frac{dv}{dt} = v(v-v_T) (1-v)", "leanA": "AlleeCubic_001.lean :: AlleeCubic_0016", "leanB": "AlleeCubic_001.lean :: AlleeCubic_0019", "nQueries": 5, "evidence": [{"url": "https://arxiv.org/pdf/0807.0451", "note": "excitable-media paper mentions epidemics only in passing, not within-vector viral kinetics"}, {"url": "https://arxiv.org/pdf/1912.08312", "note": "source paper A only"}], "checkNote": "The Allee/Nagumo cubic identity is a known mathematical fact, but no source ties within-vector viral growth to cardiac gap-junction propagation (one Wikipedia query lost to rate limit).", "seed": 1019, "bar": 0.9317}, {"fam": "damped", "law": "Damped oscillation", "eq": "y'' + c y' + w^2 y = 0", "lawPlain": "a spring with friction: swings that fade", "nameA": "giant swirling eddies in a simple model of the atmosphere", "nameB": "a soft-shelled drone that bounces off walls", "fieldA": "climate", "fieldB": "computer science", "shared": "both are a damped spring", "verdict": "UNSEEN", "uniq": 0.8616, "titleA": "Eddy saturation in a reduced two-level model of the atmosphere", "titleB": "When Being Soft Makes You Tough: A Collision-Resilient Quadcopter Inspired by Arthropods' Exoskeletons", "urlA": "https://arxiv.org/abs/2107.05864", "urlB": "https://arxiv.org/abs/2103.04423", "texA": "\\ddot x + \\lambda \\dot x + \\omega^2_0 x = 0", "texB": "m\\ddot{x} + c\\dot{x} + kx = F", "leanA": "Oscillation_001.lean :: Oscillation_0013 (proved under owner oscillation)", "leanB": "DampedOsc_001.lean :: DampedOsc_0017", "nQueries": 4, "evidence": [{"url": "https://collaborate.princeton.edu/en/publications/large-eddy-simulations-and-damped-oscillator-models-of-the-unstea/", "note": "Ekman boundary layer as damped oscillator (atmosphere side only)"}, {"url": "https://arxiv.org/pdf/2107.11090", "note": "drone exoskeleton as mass-spring-damper (drone side only)"}], "checkNote": "Each side has damped-oscillator models, but no source pairs atmospheric eddy dynamics with collision-resilient drones.", "seed": 1022, "bar": 0.9241}, {"fam": "osc", "law": "Oscillation", "eq": "y'' = -w^2 y", "lawPlain": "a pull back toward the middle makes it swing forever", "nameA": "a wind turbine's tower swaying under its rotor", "nameB": "prices swinging in a second-order model of financial markets", "fieldA": "climate", "fieldB": "finance", "shared": "both are the oscillation law", "verdict": "UNSEEN", "uniq": 0.8429, "titleA": "Could mass eccentricity explain the formation of orbits in wind turbines?", "titleB": "Second order stochastic differential models for financial markets", "urlA": "https://arxiv.org/abs/2110.12802", "urlB": "https://arxiv.org/abs/1707.05419", "texA": "(m_1 + m_2) \\ddot{x} = - k_1 x", "texB": "\\ddot{z}_i = - \\lambda_i^2 z_i", "leanA": "Oscillation_001.lean :: Oscillation_0101", "leanB": "Oscillation_001.lean :: Oscillation_0121", "nQueries": 4, "evidence": [{"url": "https://arxiv.org/pdf/1103.1992", "note": "prices as damped harmonic oscillator; generic spring analogy, no wind turbine"}, {"url": "https://arxiv.org/pdf/1409.1748", "note": "spring-block analogy for stock indexes"}], "checkNote": "Price-as-spring-oscillator is a recurring fringe finance analogy, but no source pairs it with wind-turbine tower sway specifically.", "seed": 1028, "bar": 0.904}, {"fam": "fill", "law": "Relaxation", "eq": "y' = k (a - y)", "lawPlain": "filling up to a set level: fast at first, slower as it gets close", "nameA": "the fraction of gas still neutral as the first stars lit up the universe", "nameB": "the 'state' of a sliding earthquake fault (rate-and-state friction)", "fieldA": "astronomy", "fieldB": "geophysics", "shared": "both relax toward a moving target with first-order lag", "verdict": "UNSEEN", "uniq": 0.8419, "titleA": "The Impact of Small-Scale Structure on Cosmological Ionization Fronts and Reionization", "titleB": "Finite element modeling of dynamic frictional rupture with rate and state friction", "urlA": "https://arxiv.org/abs/astro-ph/0411035", "urlB": "https://arxiv.org/abs/1908.07826", "texA": "\\frac{dy}{d\\tau}=(1+z)^{-3}-y", "texB": "\\dot{\\phi} = 1 - \\frac{v \\phi}{D}", "leanA": "Relaxation_001.lean :: Relaxation_0021", "leanB": "Relaxation_012.lean :: Relaxation_2299", "nQueries": 4, "evidence": [{"url": "https://arxiv.org/abs/astro-ph/0202313v1", "note": "ionization relaxation lag in the chromosphere; no friction link"}], "checkNote": "Both are first-order relaxation toward a moving target, but nothing links reionization neutral fraction to the rate-and-state aging law.", "seed": 1031, "bar": 0.9029}, {"fam": "massaction", "law": "Mass-action interaction", "eq": "x' = -k x y", "lawPlain": "the rate is set by how often two things meet", "nameA": "a sperm cell steering toward an egg's chemical signal", "nameB": "electrons being captured by defects in a thin MoS2 crystal", "fieldA": "biology", "fieldB": "materials", "shared": "both follow mass-action interaction: rate set by a product of two amounts", "verdict": "UNSEEN", "uniq": 0.8169, "titleA": "Optimal decision making for sperm chemotaxis in the presence of noise", "titleB": "High Intrinsic Mobility and Ultrafast Carrier Dynamics in Multilayer Metal Dichalcogenide MoS2", "urlA": "https://arxiv.org/abs/1711.04858", "urlB": "https://arxiv.org/abs/1408.2562", "texA": "\\mu \\dot{p} = p(1-a)", "texB": "\\frac{dp}{dt} = - B n_{\\rm d} n p f_{\\rm d}", "leanA": "Interaction_003.lean :: Interaction_0530", "leanB": "Interaction_002.lean :: Interaction_0376", "nQueries": 4, "evidence": [{"url": "https://arxiv.org/pdf/2605.06109", "note": "MoS2 defect capture work only, no biology link"}, {"url": "https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/9440207", "note": "sperm 'trapping' vs chemotaxis in microfluidics, unrelated to semiconductor trapping"}], "checkNote": "Results split cleanly into two unrelated literatures; nothing connects them.", "seed": 1036, "bar": 0.8761}, {"fam": "wave", "law": "Wave equation", "eq": "u_tt = c^2 u_xx", "lawPlain": "a bump splits in two and travels both ways", "nameA": "ripples sloshing inside a neutron star about to merge", "nameB": "sound travelling through a one-way acoustic isolator", "fieldA": "astronomy", "fieldB": "engineering", "shared": "both obey the wave equation", "verdict": "UNSEEN", "uniq": 0.7847, "titleA": "Resonant Tidal Excitations of Inertial Modes in Coalescing Neutron Star Binaries", "titleB": "Broadband acoustic isolator in the audible range : nonreciprocal acoustic propagation using programmable boundary conditions", "urlA": "https://arxiv.org/abs/astro-ph/0604163", "urlB": "https://arxiv.org/abs/1712.05329", "texA": "\\nabla^2\\psi-q^2{\\partial^2\\psi\\over\\partial z^2}=0", "texB": "\\frac{1}{c_0^2}\\partial_{tt} p(x,y,z,t) - \\nabla^2 p(x,y,z,t) = 0", "leanA": "Waves_001.lean :: Waves_0022", "leanB": "Waves_001.lean :: Waves_0031", "nQueries": 4, "evidence": [{"url": "https://infoscience.epfl.ch/record/272772", "note": "acoustic isolator paper, no astrophysics link"}, {"url": "https://en.wikipedia.org/wiki/Neutron-star_oscillation", "note": "p-modes generically called acoustic modes; no isolator or lab link"}], "checkNote": "That stellar p-modes are acoustic is generic knowledge, but nothing pairs neutron-star inertial modes with a nonreciprocal acoustic isolator.", "seed": 1044, "bar": 0.8416}];
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const T_END = 8, PLAY = 9, HOLD = 2.2, N = 140;
+
+  // ---------- helpers ----------
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let x = Math.imul(seed ^ seed >>> 15, 1 | seed); x = x + Math.imul(x ^ x >>> 7, 61 | x) ^ x; return ((x ^ x >>> 14) >>> 0) / 4294967296; }; }
+  function gauss(R) { let u = 0, v = 0; while (u === 0) u = R(); v = R(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  const clamp01 = v => Math.max(0, Math.min(1, v));
+  const ease = v => v * v * (3 - 2 * v);
+  const lerp = (a, b, k) => a + (b - a) * k;
+  function alpha(col, a) {
+    if (col.startsWith("#")) { const n = parseInt(col.slice(1), 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`; }
+    return col.replace(/[\d.]+\)$/, m => (parseFloat(m) * a) + ")");
+  }
+  function rk4(f, y0, dt, steps) { const out = [y0]; let y = y0; for (let i = 0; i < steps; i++) { const k1 = f(y), k2 = f(y + dt * k1 / 2), k3 = f(y + dt * k2 / 2), k4 = f(y + dt * k3); y = y + dt * (k1 + 2 * k2 + 2 * k3 + k4) / 6; out.push(y); } return out; }
+  function table(arr) { const n = arr.length - 1; return t => { const x = clamp01(t / T_END) * n, i = Math.min(n - 1, Math.floor(x)); return lerp(arr[i], arr[i + 1], x - i); }; }
+
+  // ---------- the laws: chart value y(t) in [0,1] ----------
+  const M = 800, DT = T_END / M;
+  const LAW = {
+    fill: { y: t => 1 - Math.exp(-0.55 * t), kind: "member", up: true },
+    decay: { y: t => Math.exp(-0.45 * t), kind: "member", up: false },
+    logistic: { y: t => 1 / (1 + 19 * Math.exp(-1.05 * t)), kind: "member", up: true },
+    allee: (() => {
+      const f = y => 1.7 * y * (y - 0.3) * (1 - y);
+      const hi = table(rk4(f, 0.36, DT, M)), lo = table(rk4(f, 0.24, DT, M));
+      return { y: hi, ghost: lo, kind: "member", up: true, thresh: 0.3 };
+    })(),
+    massaction: (() => { const f = x => -1.3 * x * (x + 0.12); return { y: table(rk4(f, 1, DT, M)), kind: "member", up: false }; })(),
+    bottleneck: (() => {
+      const f = x => 0.15 + x * x; let arr = rk4(x => Math.min(40, f(x)), -1.2, DT, M);
+      arr = arr.map(x => 0.5 + 0.5 * Math.tanh(Math.min(x, 6) / 1.1));
+      return { y: table(arr), kind: "member", up: true };
+    })(),
+    osc: { y: t => 0.5 + 0.42 * Math.cos(1.7 * t), kind: "disp", raw: t => Math.cos(1.7 * t) },
+    damped: { y: t => 0.5 + 0.42 * Math.exp(-0.28 * t) * Math.cos(2.3 * t), kind: "disp", raw: t => Math.exp(-0.28 * t) * Math.cos(2.3 * t) },
+    wave: (() => {
+      const c = 0.25, w = 0.055, g = s => Math.exp(-((s - 0.5) ** 2) / (2 * w * w));
+      const fext = s => { let v = 0; for (let k = -3; k <= 3; k++) v += g(s - 2 * k) - g(-s - 2 * k); return v; };
+      const u = (x, t) => 0.5 * (fext(x - c * t) + fext(x + c * t));
+      return { y: t => 0.5 + 0.42 * u(0.8, t), kind: "wave", u };
+    })(),
+    diffuse: { y: t => Math.sqrt(t / T_END), kind: "walk", tele: false },
+    telegraph: (() => {
+      const g = 0.9, msd = t => (g * t - 1 + Math.exp(-g * t));
+      return { y: t => Math.sqrt(msd(t) / msd(T_END)), kind: "walk", tele: true, gamma: g };
+    })(),
+  };
+
+  // ---------- per-card simulation state (shared draws for both worlds) ----------
+  function makeSim(card) {
+    const law = LAW[card.fam], R = rng(card.seed), sim = { law, P: [] };
+    if (law.kind === "member") {
+      // stratified u's: particle i is "switched" exactly when the curve passes u_i, in BOTH worlds
+      for (let i = 0; i < N; i++) {
+        const u = (i + R()) / N;
+        let T = Infinity;
+        const y0 = law.y(0);
+        if (law.up ? u < y0 : u >= y0) T = law.up ? 0 : Infinity;
+        else { for (let k = 1; k <= M; k++) { const tt = k * DT, v = law.y(tt); if (law.up ? v > u : v < u) { T = tt; break; } } }
+        if (!law.up && u >= y0) T = 0;
+        sim.P.push({ u, T, r: [R(), R(), R(), R(), R(), R()] });
+      }
+    } else if (law.kind === "disp" || law.kind === "wave") {
+      for (let i = 0; i < N; i++) sim.P.push({ lag: R() * 0.35, r: [R(), R(), R(), R(), R(), R()] });
+    } else {
+      // walkers: one shared path per walker, used by both worlds
+      const steps = 400, dt = T_END / steps;
+      for (let i = 0; i < N; i++) {
+        let x = 0, y = 0, ang = R() * Math.PI * 2; const path = new Float32Array((steps + 1) * 2);
+        for (let s = 1; s <= steps; s++) {
+          if (law.tele) { if (R() < law.gamma * dt) ang = R() * Math.PI * 2; x += Math.cos(ang) * dt * 0.62; y += Math.sin(ang) * dt * 0.62; }
+          else { x += gauss(R) * Math.sqrt(dt) * 0.3; y += gauss(R) * Math.sqrt(dt) * 0.3; }
+          path[s * 2] = x; path[s * 2 + 1] = y;
+        }
+        sim.P.push({ path, steps, r: [R(), R(), R()] });
+      }
+      sim.rmsEnd = Math.sqrt(sim.P.reduce((a, p) => a + p.path[p.steps * 2] ** 2 + p.path[p.steps * 2 + 1] ** 2, 0) / N);
+    }
+    return sim;
+  }
+
+  // ---------- theme ----------
+  let C = {};
+  function readTokens() {
+    const cs = getComputedStyle(document.documentElement);
+    for (const k of ["stage", "ink", "mute", "grid", "a1", "a2", "b1", "b2", "gone"]) C[k] = cs.getPropertyValue("--" + k).trim();
+    C.glow = cs.getPropertyValue("--glow").trim() === "1";
+  }
+  readTokens();
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", readTokens);
+  new MutationObserver(readTokens).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+  // ---------- render cards ----------
+  const host = document.getElementById("cards");
+  const nUn = CARDS.filter(c => c.verdict === "UNSEEN").length, nRa = CARDS.length - nUn;
+  document.getElementById("legend").innerHTML =
+    `<span><b>${CARDS.length}</b> pairs</span><span><b>${nUn}</b> unseen: nothing found naming them together</span><span><b>${nRa}</b> rare: one or two obscure mentions</span><span>sorted by uniqueness</span>`;
+
+  function tex(s) {
+    const t = s.replace(/\\eqno\s*\([^)]*\)/g, "").replace(/\\mrm/g, "\\mathrm").replace(/\\ov\b/g, "\\overline");
+    if (window.katex) { try { return katex.renderToString(t, { throwOnError: true, output: "mathml" }); } catch (e) { /* raw */ } }
+    return `<code>${esc(s)}</code>`;
+  }
+
+  const views = [];
+  CARDS.forEach((c, idx) => {
+    const el = document.createElement("article");
+    el.className = "card";
+    const searched = c.verdict === "UNSEEN"
+      ? `searched Wikipedia and the web (${c.nQueries} searches) for the two named together: <b>nothing found</b>.`
+      : `searched Wikipedia and the web (${c.nQueries} searches): <b>only a rare mention</b> links them.`;
+    const ev = c.evidence.length ? `<div class="ev">What the search turned up: ${c.evidence.map(e => `<div><a href="${esc(e.url)}" target="_blank" rel="noopener">${esc(e.url)}</a> ${esc(e.note || "")}</div>`).join("")}</div>` : "";
+    el.innerHTML = `
+      <div class="head">
+        <span class="num">${String(idx + 1).padStart(2, "0")}</span>
+        <div class="law"><b>${esc(c.law)} &nbsp;<span style="font-size:12px">${esc(c.eq)}</span></b><span>${esc(c.lawPlain)}</span></div>
+        <span class="chip ${c.verdict}">${c.verdict}</span>
+        <div class="uniq" title="uniqueness = field distance x no citation link x rarity, discounted if a rare mention exists"><span>uniqueness</span><span class="bar"><i style="width:${(c.bar * 100).toFixed(0)}%"></i></span><span>${c.uniq.toFixed(2)}</span></div>
+      </div>
+      <div class="stage"><canvas aria-label="${esc(c.nameA)} and ${esc(c.nameB)} follow the same curve"></canvas></div>
+      <div class="names">
+        <div class="nm a"><b>${esc(c.nameA)}</b><span>${esc(c.fieldA)}</span></div>
+        <div class="mid">${esc(c.shared)}</div>
+        <div class="nm b"><b>${esc(c.nameB)}</b><span>${esc(c.fieldB)}</span></div>
+      </div>
+      <p class="sure"><b>How sure:</b> both equations are machine-checked in Lean to be this same law (after rescaling); the two papers share no references and neither cites the other; ${searched}</p>
+      <details><summary>sources and proofs</summary>
+        <div class="src">
+          <div><a href="${esc(c.urlA)}" target="_blank" rel="noopener">${esc(c.titleA)}</a><div class="tex">${tex(c.texA)}</div><code>Lean: ${esc(c.leanA)}</code></div>
+          <div><a href="${esc(c.urlB)}" target="_blank" rel="noopener">${esc(c.titleB)}</a><div class="tex">${tex(c.texB)}</div><code>Lean: ${esc(c.leanB)}</code></div>
+        </div>${ev}
+      </details>`;
+    host.appendChild(el);
+    const cv = el.querySelector("canvas");
+    const v = { c, cv, ctx: cv.getContext("2d"), sim: makeSim(c), t: reduced ? T_END : 0, hold: 0, vis: false, W: 0, H: 0, L: null, phase: idx * 0.37 };
+    views.push(v);
+    new ResizeObserver(() => resize(v)).observe(el.querySelector(".stage"));
+    resize(v);
+  });
+
+  document.getElementById("foot").innerHTML = `
+    <div><b>How the pairs were picked.</b> Every pair of corpus equations that the same proto-law covers, both members proved in Lean, from different fields, both papers with reference lists in the OpenAlex cache. Score = field distance (1 if different top-level discipline, 0.5 if same discipline) x unseen (no direct citation and no shared reference) x rarity (fewer members of this law in that field = higher) x animates-well x governing-equation weight. A person then kept only pairs where both equations describe a concrete real thing, and the top 30 were searched on Wikipedia and the web.</div>
+    <div><b>What "unseen" does not mean.</b> Nobody in the world has noticed. It means: no citation link in our cache and no page we could find that names the two together. The equation itself is usually famous; the pairing is what is rare.</div>`;
+
+  function resize(v) {
+    const w = v.cv.parentElement.clientWidth, phone = w < 640;
+    const h = phone ? Math.round(w * 1.05) : Math.round(Math.min(330, Math.max(250, w * 0.27)));
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    v.cv.style.height = h + "px"; v.cv.width = w * dpr; v.cv.height = h * dpr; v.W = w; v.H = h; v.dpr = dpr;
+    if (phone) {
+      v.L = { phone, A: { x0: 10, x1: w / 2 - 6, y0: 12, y1: h * 0.5 }, B: { x0: w / 2 + 6, x1: w - 10, y0: 12, y1: h * 0.5 },
+        ch: { x0: 54, x1: w - 34, y0: h * 0.58, y1: h * 0.9 } };
+      v.L.gA = 14; v.L.gB = w - 14;
+    } else {
+      const ww = 0.25;
+      v.L = { phone, A: { x0: 18, x1: w * ww, y0: 16, y1: h - 16 }, B: { x0: w * (1 - ww), x1: w - 18, y0: 16, y1: h - 16 },
+        ch: { x0: w * ww + 54, x1: w * (1 - ww) - 44, y0: h * 0.1, y1: h * 0.84 } };
+      v.L.gA = v.L.A.x1 + 14; v.L.gB = v.L.B.x0 - 14;
+    }
+    if (reduced) draw(v);
+  }
+
+  // ---------- drawing ----------
+  function dot(ctx, x, y, r, col, a) { ctx.fillStyle = alpha(col, a); ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); }
+  function sq(ctx, x, y, r, col, a) { ctx.fillStyle = alpha(col, a); ctx.fillRect(x - r, y - r, r * 2, r * 2); }
+  function halo(ctx, x, y, r, col, a) { const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, alpha(col, a)); g.addColorStop(1, alpha(col, 0)); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); }
+
+  function frameWorld(v, Wd, side) {
+    const { ctx } = v, c0 = side ? C.b1 : C.a1;
+    ctx.strokeStyle = alpha(c0, 0.28); ctx.lineWidth = 1; ctx.setLineDash([2, 5]);
+    if (side) { ctx.beginPath(); ctx.ellipse((Wd.x0 + Wd.x1) / 2, (Wd.y0 + Wd.y1) / 2, (Wd.x1 - Wd.x0) / 2, (Wd.y1 - Wd.y0) / 2, 0, 0, Math.PI * 2); ctx.stroke(); }
+    else { const r = 14; ctx.beginPath(); ctx.roundRect(Wd.x0, Wd.y0, Wd.x1 - Wd.x0, Wd.y1 - Wd.y0, r); ctx.stroke(); }
+    ctx.setLineDash([]);
+  }
+
+  function drawWorld(v, side, clock) {
+    const { ctx, sim, t } = v, Wd = side ? v.L.B : v.L.A, law = sim.law;
+    const c0 = side ? C.b1 : C.a1, c1 = side ? C.b2 : C.a2, mark = side ? dot : sq;
+    const cx = (Wd.x0 + Wd.x1) / 2, cy = (Wd.y0 + Wd.y1) / 2, w = Wd.x1 - Wd.x0, h = Wd.y1 - Wd.y0;
+    const r = Math.max(1.4, Math.min(2.6, w * 0.011));
+    frameWorld(v, Wd, side);
+    ctx.save(); ctx.beginPath();
+    if (side) ctx.ellipse(cx, cy, w / 2, h / 2, 0, 0, Math.PI * 2); else ctx.roundRect(Wd.x0, Wd.y0, w, h, 14);
+    ctx.clip();
+    if (C.glow) ctx.globalCompositeOperation = "lighter";
+    if (law.kind === "member") {
+      // two zones: top = not yet switched, bottom = switched. Same thresholds T_i in both worlds.
+      const top = Wd.y0 + h * 0.27, bot = Wd.y0 + h * 0.73, TR = 0.45;
+      const before = law.up ? c0 : c1, after = law.up ? c1 : C.gone;
+      const yv = law.y(t);
+      halo(ctx, cx, bot, w * 0.42, law.up ? c1 : c1, 0.18 * (law.up ? yv : 0));
+      halo(ctx, cx, top, w * 0.42, law.up ? c0 : c1, 0.18 * (law.up ? 1 - yv : yv));
+      for (const p of sim.P) {
+        const q = p.r;
+        const home0 = [cx + (q[0] - 0.5) * w * 0.8 + Math.sin(clock * 1.1 + q[2] * 9) * 1.2, top + (q[1] - 0.5) * h * 0.36];
+        const home1 = side
+          ? [cx + Math.cos(q[3] * 6.283 + clock * 0.25 * (q[5] > 0.5 ? 1 : -1)) * w * 0.36 * Math.sqrt(q[4]), bot + Math.sin(q[3] * 6.283 + clock * 0.25 * (q[5] > 0.5 ? 1 : -1)) * h * 0.17 * Math.sqrt(q[4])]
+          : [cx + (q[3] - 0.5) * w * 0.8, bot + (q[4] - 0.5) * h * 0.34 + Math.sin(clock * 0.7 + q[0] * 7) * 0.8];
+        if (t < p.T) mark(ctx, home0[0], home0[1], r, before, 0.85);
+        else if (t < p.T + TR) { const k = ease((t - p.T) / TR); const x = lerp(home0[0], home1[0], k), y = lerp(home0[1], home1[1], k) - Math.sin(k * Math.PI) * h * 0.06; mark(ctx, x, y, r * 1.5, law.up ? after : c1, 0.95); halo(ctx, x, y, r * 5, law.up ? after : c1, 0.3); }
+        else mark(ctx, home1[0], home1[1], r, after, law.up ? 0.9 : 1.6);
+      }
+    } else if (law.kind === "disp") {
+      const amp = w * 0.3, wallX = side ? Wd.x1 - 8 : Wd.x0 + 8;
+      const x0 = cx + amp * law.raw(t);
+      // spring from wall to the cloud's centre
+      ctx.strokeStyle = alpha(c0, 0.6); ctx.lineWidth = 1.2; ctx.beginPath();
+      const n = 14; for (let k = 0; k <= n; k++) { const xx = lerp(wallX, x0, k / n), yy = cy + (k % 2 ? 1 : -1) * (k === 0 || k === n ? 0 : h * 0.04); k ? ctx.lineTo(xx, yy) : ctx.moveTo(xx, yy); } ctx.stroke();
+      halo(ctx, x0, cy, w * 0.3, c1, 0.25);
+      for (const p of sim.P) {
+        const q = p.r, rr = Math.sqrt(q[0]) * Math.min(w, h) * 0.24, a = q[1] * 6.283;
+        const xx = cx + amp * law.raw(Math.max(0, t - p.lag)) + Math.cos(a) * rr, yy = cy + Math.sin(a) * rr * 1.1;
+        mark(ctx, xx, yy, r, Math.abs(xx - cx) > amp * 0.5 ? c1 : c0, 0.85);
+      }
+    } else if (law.kind === "wave") {
+      const n = 64;
+      for (let k = 0; k < n; k++) {
+        const s = k / (n - 1), u = law.u(s, t);
+        for (let j = 0; j < 2; j++) {
+          const p = sim.P[(k * 2 + j) % N].r;
+          const xx = Wd.x0 + 10 + s * (w - 20), yy = cy - u * h * 0.32 + (j - 0.5) * 7 + (p[0] - 0.5) * 3;
+          mark(ctx, xx, yy, r, Math.abs(u) > 0.15 ? c1 : c0, 0.9);
+        }
+      }
+      const px = Wd.x0 + 10 + 0.8 * (w - 20);
+      ctx.strokeStyle = alpha(C.mute, 0.6); ctx.setLineDash([2, 4]); ctx.beginPath(); ctx.moveTo(px, Wd.y0 + 10); ctx.lineTo(px, Wd.y1 - 10); ctx.stroke(); ctx.setLineDash([]);
+    } else {
+      // walkers: identical paths in both worlds
+      const sc = Math.min(w, h) * 0.3 / sim.rmsEnd, k = clamp01(t / T_END) * sim.P[0].steps, i0 = Math.floor(k), f = k - i0;
+      halo(ctx, cx, cy, sc * 1.5 * Math.max(0.15, law.y(t)), c1, 0.22);
+      dot(ctx, cx, cy, 3, c0, 0.9);
+      for (const p of sim.P) {
+        const i1 = Math.min(p.steps, i0 + 1), x = lerp(p.path[i0 * 2], p.path[i1 * 2], f), y = lerp(p.path[i0 * 2 + 1], p.path[i1 * 2 + 1], f);
+        const xx = cx + x * sc, yy = cy + y * sc;
+        if (xx < Wd.x0 + 2 || xx > Wd.x1 - 2 || yy < Wd.y0 + 2 || yy > Wd.y1 - 2) continue;
+        mark(ctx, xx, yy, r, Math.hypot(x, y) > 0.5 * sim.rmsEnd ? c1 : c0, 0.85);
+      }
+    }
+    ctx.globalCompositeOperation = "source-over";
+    ctx.restore();
+  }
+
+  function drawChart(v) {
+    const { ctx, L, sim, t } = v, { x0, x1, y0, y1 } = L.ch, law = sim.law;
+    const X = tt => x0 + (tt / T_END) * (x1 - x0), Y = val => y1 - val * (y1 - y0);
+    ctx.font = `${L.phone ? 9 : 10}px ${getComputedStyle(document.body).fontFamily}`;
+    ctx.textBaseline = "middle"; ctx.strokeStyle = C.grid; ctx.lineWidth = 1; ctx.fillStyle = C.mute;
+    for (const val of [0, 0.5, 1]) { ctx.beginPath(); ctx.moveTo(x0, Y(val)); ctx.lineTo(x1, Y(val)); ctx.stroke(); }
+    ctx.textAlign = "center"; ctx.fillText("time", (x0 + x1) / 2, y1 + 14);
+    const yl = { member: law.up ? "fraction switched" : "fraction left", disp: "position", wave: "height at probe", walk: "spread" }[law.kind];
+    ctx.save(); ctx.translate(x0 - 14, (y0 + y1) / 2); ctx.rotate(-Math.PI / 2); ctx.fillText(yl, 0, 0); ctx.restore();
+    if (law.ghost) {
+      const gp = new Path2D(); gp.moveTo(X(0), Y(law.ghost(0)));
+      for (let tt = 0.02; tt <= Math.min(t, T_END); tt += 0.02) gp.lineTo(X(tt), Y(law.ghost(tt)));
+      ctx.strokeStyle = alpha(C.mute, 0.7); ctx.setLineDash([2, 4]); ctx.lineWidth = 1.4; ctx.stroke(gp); ctx.setLineDash([]);
+      ctx.fillStyle = C.mute; ctx.textAlign = "left"; ctx.fillText("tipping point", x0 + 4, Y(law.thresh) - 8);
+      ctx.strokeStyle = alpha(C.mute, 0.4); ctx.beginPath(); ctx.moveTo(x0, Y(law.thresh)); ctx.lineTo(x1, Y(law.thresh)); ctx.stroke();
+    }
+    const tEnd = Math.min(t, T_END), step = T_END / 500, path = new Path2D();
+    path.moveTo(X(0), Y(law.y(0)));
+    for (let tt = step; tt <= tEnd; tt += step) path.lineTo(X(tt), Y(law.y(tt)));
+    path.lineTo(X(tEnd), Y(law.y(tEnd)));
+    const area = new Path2D(path); area.lineTo(X(tEnd), Y(0)); area.lineTo(X(0), Y(0)); area.closePath();
+    const grad = ctx.createLinearGradient(0, y0, 0, y1); grad.addColorStop(0, alpha(C.a2, 0.14)); grad.addColorStop(0.5, alpha(C.b2, 0.08)); grad.addColorStop(1, alpha(C.b2, 0));
+    ctx.fillStyle = grad; ctx.fill(area);
+    ctx.lineJoin = "round"; ctx.lineWidth = L.phone ? 2.4 : 3;
+    ctx.setLineDash([8, 8]); ctx.lineDashOffset = 0; ctx.strokeStyle = C.a2; ctx.stroke(path);
+    ctx.lineDashOffset = 8; ctx.strokeStyle = C.b2; ctx.stroke(path); ctx.setLineDash([]); ctx.lineDashOffset = 0;
+    // live point + tethers to both gauges at the same height: the two worlds agree
+    const val = law.y(tEnd), ly = Y(val), lx = X(tEnd);
+    ctx.lineWidth = 1.1; ctx.setLineDash([2, 5]);
+    ctx.strokeStyle = alpha(C.a2, 0.7); ctx.beginPath(); ctx.moveTo(L.gA, ly); ctx.lineTo(lx, ly); ctx.stroke();
+    ctx.strokeStyle = alpha(C.b2, 0.7); ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(L.gB, ly); ctx.stroke(); ctx.setLineDash([]);
+    if (C.glow) ctx.globalCompositeOperation = "lighter";
+    halo(ctx, lx, ly, 18, C.a2, 0.35); halo(ctx, lx, ly, 11, C.b2, 0.35);
+    ctx.globalCompositeOperation = "source-over";
+    dot(ctx, lx, ly, 4.5, C.ink, 1);
+    for (const [gx, col] of [[L.gA, C.a2], [L.gB, C.b2]]) {
+      ctx.lineCap = "round"; ctx.strokeStyle = C.grid; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(gx, y0); ctx.lineTo(gx, y1); ctx.stroke();
+      ctx.strokeStyle = col; ctx.beginPath(); ctx.moveTo(gx, y1); ctx.lineTo(gx, ly); ctx.stroke(); dot(ctx, gx, ly, 4, col, 1);
+    }
+  }
+
+  function draw(v, clock = 0) {
+    const { ctx } = v;
+    ctx.setTransform(v.dpr, 0, 0, v.dpr, 0, 0); ctx.clearRect(0, 0, v.W, v.H);
+    drawWorld(v, 0, clock); drawWorld(v, 1, clock); drawChart(v);
+  }
+
+  // ---------- loop: only visible cards animate ----------
+  const io = new IntersectionObserver(es => es.forEach(e => { const v = views.find(x => x.cv === e.target); if (v) v.vis = e.isIntersecting; }), { rootMargin: "80px" });
+  views.forEach(v => io.observe(v.cv));
+  if (reduced) { views.forEach(v => draw(v)); return; }
+  let last = null, clock = 0;
+  function frame(ts) {
+    const dt = last == null ? 0 : Math.min(0.05, (ts - last) / 1000); last = ts; clock += dt;
+    for (const v of views) {
+      if (!v.vis) continue;
+      if (v.t < T_END) v.t = Math.min(T_END, v.t + dt * T_END / PLAY);
+      else { v.hold += dt; if (v.hold > HOLD) { v.t = 0; v.hold = 0; } }
+      draw(v, clock + v.phase);
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // numeric self-check hook: both worlds read the same draws, so per-card switched fraction == curve (member laws)
+  window.__rp = { check() { return views.map(v => { const law = v.sim.law; if (law.kind !== "member") return { law: v.c.fam, kind: law.kind }; const tt = 5; const frac = v.sim.P.filter(p => tt >= p.T).length / N; return { law: v.c.fam, t: tt, curve: law.up ? law.y(tt) : 1 - law.y(tt), switched: frac }; }); }, set(tt) { views.forEach(v => { v.t = tt; v.hold = -1e9; draw(v); }); } };
+})();
+</script>
+
+</body>
+</html>
